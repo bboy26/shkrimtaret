@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poems and Quotes</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1 style="text-align: center;">Poezi dhe Thenie nga Shkrimtare</h1>
+  </header>
+
+  <!-- Filters -->
+  <div class="filters">
+    <select id="authorFilter">
+      <option value="">Select Author</option>
+      <option value="Ndre Mjeda">Ndre Mjeda</option>
+      <option value="Naim Frasheri">Naim Frasheri</option>
+      <option value="Sami Frasheri">Sami Frasheri</option>
+      <option value="Migjeni">Migjeni</option>
+      <option value="Ismail Kadare">Ismail Kadare</option>
+      <option value="Dritero Agolli">Dritero Agolli</option>
+      <option value="Anton Zako Cajupi">Anton Zako Cajupi</option>
+      <option value="Ernest Koliqi">Ernest Koliqi</option>
+      <option value="Gjergj Fishta">Gjergj Fishta</option>
+      <option value="Lasgush Poradeci">Lasgush Poradeci</option>
+    </select>
+
+    <select id="categoryFilter">
+      <option value="">Select Category</option>
+      <option value="Poem">Poezi</option>
+      <option value="Quote">Thenie</option>
+    </select>
+
+    <input type="text" id="searchInput" placeholder="Search by title">
+    <button onclick="applyFilters()">Kerko</button>
+  </div>
+
+  <!-- Posts Container (4 columns per row) -->
+  <div id="postsContainer" class="posts-container"></div>
+
+  <!-- Modal Structure (hidden by default) -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h3 id="modalTitle"></h3>
+      <p id="modalContent" class="modal-text"></p>
+      <button id="closeModal" class="modal-close">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // Sample data for posts (poems and quotes)
+    const posts = [
+      { id: 1, title: 'Vjeshta', content: 'Dhe ju po shkoni, Bylbyla kshtu! Po treni kendynaj, Dallndysha ju! Deken mendova, Se mvjen kurdo; Se mleni vetun Smendova jo. Por ma fort zemren Ma bren nji idhnim: Cerdhen qi i leni Kujdesit tim. Ndoshta, kur tktheni Mue vorri mba, E ju kerkoni Cerdhen qi sa', author: 'Ndre Mjeda', category: 'Poem' },
+      { id: 2, title: 'Naimi Thenie', content: 'Kur te jesh i zemeruar, mendja eshte e turbulluar, bej durim sa te kullohet, se njeriu pastaj pendohet.', author: 'Naim Frasheri', category: 'Quote' },
+      { id: 3, title: 'Recital i Malsorit', content: 'O, si nuk kam një grusht të fortë, ti bij mu në zemër malit që sbëzanë,ta dij dhe ai se çdomethanë i dobët nagoni të përdihet si vigan i vramë. Unë lugat si hij e trazueme, trashigimtar i vuejtjes dhe i durimit, endem mbi bark të malit me ujën e zgjueme dhe me klithma të pakënaqura tinstinktit. Mali hesht. Edhe pse përditë mbi lëkurë të tij, në lojë varrimtare, kërkoj me gjetë një kafshatë ma të mirë... Por më rren shaka, shpresa gënjeshtare. Mali hesht, dhe në heshtje qesh. E unë vuej, dhe në vuejtje vdes. Po unë, kur? heu! kur kam për tu qesh Apo ndoshta duhet ma parë të vdes? O, si nuk kam një grusht të fuqishëm! Malit, që hesht, mu në zemër me ia njesh! Ta shof si dridhet nga grushti paligjshëm...E unë të kënaqem, të kënaqem tu u qesh.', author: 'Migjeni', category: 'Poem' },
+      { id: 4, title: 'Fishta Thenie', content: 'Edhe hana do ta dije, edhe dielli do tket pa, se perqark ksaj rrokullije, si Shqypnija vend nuk ka!', author: 'Gjergj Fishta', category: 'Quote' },
+      { id: 5, title: 'Me zjarr ju flas me zjarr', content: 'Me zjarr ju flas… me zjarr Në gjirin tim kam hapur varr… Që t’i jap shpresë- edhe t’ja marr… Un’ ik liqerit zemërak. Fatlum dh’ i pastër si zëmbak,Po zemra ime kullon gjak: Se vijnë- urtuar zogjtë-e mi, Dh’u jap ushqim me dashuri- Një dashuri për llaftari: Pa nis ah! Gjirin ta godas… Dh’e hap ah! gjirin për një ças…Dh’i nginj ah! zogjtë- e vdes me gas!… Ahere – helmohet e buçet Pas mallit tim liqer-i shkret, E rrit tallazin posi det. Ay e tund, ay e shkund, Ay e hap sa me të mund, Gjer mun në gjit, gjer mu në fund. E shpirtin dyke ma përcjellë Më thotë ah! shih sesa ‘sht’i fellë… Ky gjir’i em që të pat pjellë… Me zjarr ju flas… Me zjarr…', author: 'Lasgush Poradeci', category: 'Poem' },
+      { id: 6, title: 'Samiu Thenie', content: 'Liria eshte thelbi i shpirtit dhe i mendjes; aty ku ska liri, mendja dhe shpirti thahen si bima pa uje.', author: 'Sami Frasheri', category: 'Quote' },
+      { id: 7, title: 'Lamtumire', content: 'Lâmtumir’! Kaloi prendvera, muer me vete kângë e fletë; u thá kopshti e gjethlat era përtej prrojeve i ka tretë. M’kan mbulue kujdese tjera qyshse nisa t’njof, o Jetë; s’m’ joshin mâ agime e ylbera: tash Mysterin due me pvetë. Due m’i a terun lott t’mjeruemit,n’shgjeta due me i gjuejt’ t’praksuemit n’shkam të Febos tue zân’ pritën. T’rrzuemin due t’a çoj nga balta; due m’u ngjit’ mbi maje t’nalta me shtegtar’ qi kërkojn’ Dritën…', author: 'Ernest Koliqi', category: 'Poem' },
+      { id: 8, title: 'Ismaili Thenie', content: 'Ne lufte eshte veshtire ta ndash tragjiken nga qesharakja dhe heroiken nga e trishtueshmja', author: 'Ismail Kadare', category: 'Quote' },
+      { id: 9, title: 'Driteroi Thenie', content: 'Dashuria eshte nje liber qe e lexojne te gjithe, por te pakte jane ata qe arrijne deri ne faqen e fundit', author: 'Dritero Agolli', category: 'Quote' },
+      { id: 10, title: 'Driteroi Thenie', content: 'Për të gjetur miqësinë e vërtetë kapërcehet lumi, për të gjetur dashurinë e vërtetë deti.', author: 'Dritero Agolli', category: 'Quote' },
+      { id: 11, title: 'Migjeni Thenie', content: 'Ambelsinën, ambelsinën e jetës kërko ta gjesh se e hidhuna e jetës vjen vetë.', author: 'Migjeni', category: 'Quote'},
+      { id: 12, title: 'Ndre Mjeda Thenie', content: 'Kjofte mallkue kush qet ngaterrime nder kta vllazen shoq me shoq, kush e ndan me flak e shkrime cka natyra vet perpoq', author: 'Ndre Mjeda', category: 'Quote'},
+      { id: 13, title: 'Mall', content: 'Ca pika shiu ranë mbi qelq. Për ty unë befas ndjeva mall. Jetojmë të dy në një qytet, Dhe rrallë shihemi, sa rrallë. Edhe mu duk pak e çuditshme Si erdh kjo vjeshtë, ky mëngjes. Qiejt e ngrysur pa lejlekë Dhe shirat pa ylberë në mes. Dhe thënia e vjetër e Heraklitit Seç mu kujtua sot për dreq :« Të zgjuarit janë bashkë në botë,Kurse të fjeturit janë veç ». Në çëndërr kemi rënë kaq keq, Që dot spo zgjohemi ne vallë ?...Ca pika shiu ranë mbi qelq Dhe unë për ty seç ndjeva mall.', author: 'Ismail Kadare', category: 'Poem' },
+      { id: 14, title: 'Cajupi Poezi', content: 'Mëmëdhe quhet toka ku më ka rënë koka, ku kam dashur mëm’e atë, ku më njeh dhe gur’ i thatë ku kam pasurë shtëpinë, ku kam njohur perëndinë, stërgjyshët ku kanë qënë he varret q’i kanë vënë, ku jam rritur me thërrime ku kam folur gjuhën time, ku kam fis e ku kam farë, ku kam qeshur, ku kam qarë, ku rroj me gas e me shpres, ku kam dëshirë të vdes.', author: 'Anton Zako Cajupi', category: 'Poem' },
+    
+     { id: 15, title: 'Atdheut', content: 'Nty mendoj kur agon drita, Kur bylbyli mallshem kndon, Nty mendoj kur soset dita, Terri boten kur e mblon. Vec se ty te shoh un nanderr, Vec se ty, cuet, tkam nmendim; Nder tvështira ti mje qanderr, Per ty i lehtë mvjen cdo ndeshkim. Tjera brigje, fusha e zalle Une kam pa, larg tue ba shtek, E pergjova tjera valle, Ntjera lule syu mu rrek; Por nji fushe ma e bleret nuk shtrohet, Por nji mal ma bukur srri, Ma i kulluet nji lum sdikohet, Moj Shqypni, porsi i ke ti. Nty ma i bukur lulzon Prielli, ane ma tkandshme stine e mot; Nty bylbyli pa le dielli Kndon ma ambel tMadhit Zot. Pa ty lules smi vjen era, Pa ty pema fryt nuk mbjen: Mue pa ty nuk mdel prendvera, Pa ty dielli nuk mshkelxen. Dersa tmundem me ligjrue E sa gjall me fryme un jam, Kurr Shqypni, skam me tharrue, Edhe nvorr me tpermende kam.', author: 'Gjergj Fishta', category: 'Poem' },
+    ];
+
+    let filteredPosts = posts; // Initially set all posts as filtered posts
+
+    // Function to apply filters
+    function applyFilters() {
+      const author = $('#authorFilter').val();
+      const category = $('#categoryFilter').val();
+      const search = $('#searchInput').val().toLowerCase();
+
+      // Filter the posts based on selected author, category, and search input
+      filteredPosts = posts.filter(post => {
+        return (
+          (author === '' || post.author === author) &&
+          (category === '' || post.category === category) &&
+          (search === '' || post.title.toLowerCase().includes(search))
+        );
+      });
+
+      loadPosts(); // Reload posts after applying filters
+    }
+
+    // Function to load posts into the page
+    function loadPosts() {
+      const postsContainer = $('#postsContainer');
+      postsContainer.empty(); // Clear previous posts
+
+      filteredPosts.forEach(post => {
+        postsContainer.append(`
+          <div class="post">
+            <h3>${post.title}</h3>
+            <p>by ${post.author}</p>
+            <p>Category: ${post.category}</p>
+            <button onclick="showModal(${post.id})">Read More</button>
+          </div>
+        `);
+      });
+    }
+
+    // Function to show modal with specific post details
+    function showModal(postId) {
+      const post = posts.find(p => p.id === postId); // Get the specific post by ID
+
+      // Set modal content
+      $('#modalTitle').text(post.title);
+      $('#modalContent').text(post.content);
+
+      // Show the modal
+      $('#modal').fadeIn();
+    }
+
+    // Close the modal
+    $('#closeModal').click(function() {
+      $('#modal').fadeOut(); // Hide the modal
+    });
+
+    // Close modal if clicking outside of it
+    $(window).click(function(event) {
+      if ($(event.target).is('#modal')) {
+        $('#modal').fadeOut();
+      }
+    });
+
+    // Initial load of posts
+    $(document).ready(function() {
+      loadPosts(); // Load posts on initial page load
+    });
+  </script>
+
+</body>
+</html>
